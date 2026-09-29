@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ===== 原有权限 ===== -->
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -45,6 +46,26 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="com.rosan.dhizuku.permission.API" />
 
+    <!-- ===== 来自原生安装器的系统级权限 ===== -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.HIDE_NON_SYSTEM_OVERLAY_WINDOWS" />
+    <uses-permission android:name="android.permission.USE_RESERVED_DISK" />
+    <uses-permission android:name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.READ_SYSTEM_GRAMMATICAL_GENDER" />
+    <uses-permission android:name="android.permission.RESOLVE_COMPONENT_FOR_UID" />
+    <uses-permission android:name="com.google.android.permission.INSTALL_WEARABLE_PACKAGES" />
+    <uses-permission android:name="android.permission.SET_DEVELOPER_VERIFICATION_USER_RESPONSE" />
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+    <!-- 动态广播权限（来自原生安装器） -->
+    <permission
+        android:name="com.android.packageinstaller.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.android.packageinstaller.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+
     <uses-sdk tools:overrideLibrary="
         rikka.shizuku.api,
         rikka.shizuku.provider,
@@ -66,6 +87,7 @@
         android:theme="@style/Theme.Installer"
         android:enableOnBackInvokedCallback="true"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:forceQueryable="true"
         tools:targetApi="37">
 
         <activity
@@ -98,12 +120,11 @@
             android:launchMode="singleInstance"
             android:theme="@style/Theme.Installer.Translucent">
 
-            <intent-filter>
+            <!-- 安装相关意图：添加 priority="1" -->
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.INSTALL_PACKAGE" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:mimeType="application/vnd.android.package-archive" />
@@ -111,24 +132,28 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
 
-            <intent-filter>
+            <!-- 分享 APK 文件：添加 priority="1" -->
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="application/vnd.android.package-archive" />
-
                 <data android:pathPattern=".*" />
                 <data android:mimeType="*/*" />
             </intent-filter>
 
-            <intent-filter>
+   po>
+            <intent-filter android:priority="1">
                 <action android:name="android.content.pm.action.CONFIRM_INSTALL" />
                 <action android:name="android.content.pm.action.CONFIRM_PERMISSIONS" />
                 <action android:name="android.content.pm.action.CONFIRM_PRE_APPROVAL" />
-
                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 
@@ -140,14 +165,12 @@
             android:launchMode="singleInstance"
             android:theme="@style/Theme.Installer.Translucent">
 
-            <intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.DELETE" />
                 <action android:name="android.intent.action.UNINSTALL_PACKAGE" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="package" />
             </intent-filter>
-
         </activity>
 
         <activity
@@ -157,11 +180,11 @@
             android:exported="true"
             android:launchMode="singleInstance"
             android:theme="@style/Theme.Installer.Translucent">
-            <intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="com.android.intent.action.UNARCHIVE_DIALOG" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="com.android.intent.action.UNARCHIVE_ERROR_DIALOG" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
@@ -178,7 +201,6 @@
         <service
             android:name="com.rosan.installer.framework.service.InstallerService"
             android:foregroundServiceType="specialUse">
-
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="installer_processing" />
